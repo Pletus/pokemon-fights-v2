@@ -8,3 +8,11 @@
   padding: 0;
   box-sizing: border-box ;
 }
+
+@import url('https://fonts.cdnfonts.com/css/pokemon-gb');
+
+.pokemon-text {
+  font-family: 'Pokemon GB', monospace;
+  letter-spacing: 1px;
+}
+
