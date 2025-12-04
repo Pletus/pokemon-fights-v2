@@ -1,0 +1,38 @@
+
+.background-image {
+  background-image: url('./assets/imgs/cute-yellow.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.navlinks {
+  font-size: 18px;
+  font-weight: normal;
+  font-family: sans-serif;
+}
+
+.fixedheight 2{
+  height: 120vh;
+}
+
+.nav {
+  background-color:#aaa89b;
+}
+
+.font {
+  font-family: sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 1s ease-out;
+}
