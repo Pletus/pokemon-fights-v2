@@ -1,3 +1,4 @@
+// src/FightPreview.tsx
 import React, { useEffect, useState } from "react";
 import { Pokemon } from "./types/pokemon";
 import { FightResult, SelectedPokemons } from "./types/fight";
@@ -30,11 +31,12 @@ const FightPreview: React.FC = () => {
       .then((pokemonDetails: any[]) => {
         const formatted: Pokemon[] = pokemonDetails.map((pokemon, index) => ({
           id: index + 1,
-          name: { english: pokemon.name },
-          stats: pokemon.stats,
-          abilities: pokemon.abilities,
-          types: pokemon.types,
-          sprites: pokemon.sprites,
+          name: { english: pokemon.name || "Unknown" },
+          stats: pokemon.stats || [],
+          abilities: pokemon.abilities || [],
+          types: pokemon.types || [],
+          sprites: pokemon.sprites || { front_default: "" },
+          species: pokemon.species || {},
         }));
         setPokemons(formatted);
       })
@@ -52,22 +54,37 @@ const FightPreview: React.FC = () => {
   const saveFightToHistory = (result: FightResult) => {
     const saved = localStorage.getItem("fightHistory");
     const history: FightResult[] = saved ? JSON.parse(saved) : [];
-
     history.unshift(result);
     localStorage.setItem("fightHistory", JSON.stringify(history));
-
     setBattleHistory(history);
   };
 
   // --------------------------------------------------------------------------
-  // Sistema de daño basado en tu fórmula
+  // Helpers
   // --------------------------------------------------------------------------
+  const capitalize = (str?: string) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+
+  const hpBar = (current: number, max: number) => {
+    const pct = Math.max((current / max) * 100, 0);
+    const color =
+      pct > 50 ? "bg-green-500" : pct > 20 ? "bg-yellow-400" : "bg-red-500";
+
+    return (
+      <div className="w-32 h-4 bg-gray-300 rounded-full">
+        <div
+          className={`${color} h-4 rounded-full`}
+          style={{ width: `${pct}%` }}
+        ></div>
+      </div>
+    );
+  };
+
   const calculateDamage = (attacker: Pokemon, defender: Pokemon) => {
     const attack =
       attacker.stats.find((s) => s.stat.name === "attack")?.base_stat || 50;
     const defense =
       defender.stats.find((s) => s.stat.name === "defense")?.base_stat || 50;
-
     const level = 50;
     const movePower = 50;
     const randomFactor = 0.85 + Math.random() * 0.15;
@@ -77,9 +94,6 @@ const FightPreview: React.FC = () => {
     return Math.max(Math.floor(baseDamage * randomFactor), 1);
   };
 
-  // --------------------------------------------------------------------------
-  // Lógica del combate 100% frontend
-  // --------------------------------------------------------------------------
   const handleFight = () => {
     if (!selectedPokemons.left || !selectedPokemons.right) return;
 
@@ -115,9 +129,7 @@ const FightPreview: React.FC = () => {
         rightCurrentHp = Math.max(rightCurrentHp - dmg, 0);
 
         logs.push(
-          `${capitalize(
-            selectedPokemons.left.name.english
-          )} hits ${capitalize(
+          `${capitalize(selectedPokemons.left.name.english)} hits ${capitalize(
             selectedPokemons.right.name.english
           )} for ${dmg}! (${rightCurrentHp} HP left)`
         );
@@ -131,9 +143,7 @@ const FightPreview: React.FC = () => {
         leftCurrentHp = Math.max(leftCurrentHp - dmg2, 0);
 
         logs.push(
-          `${capitalize(
-            selectedPokemons.right.name.english
-          )} hits ${capitalize(
+          `${capitalize(selectedPokemons.right.name.english)} hits ${capitalize(
             selectedPokemons.left.name.english
           )} for ${dmg2}! (${leftCurrentHp} HP left)`
         );
@@ -145,9 +155,7 @@ const FightPreview: React.FC = () => {
         leftCurrentHp = Math.max(leftCurrentHp - dmg, 0);
 
         logs.push(
-          `${capitalize(
-            selectedPokemons.right.name.english
-          )} hits ${capitalize(
+          `${capitalize(selectedPokemons.right.name.english)} hits ${capitalize(
             selectedPokemons.left.name.english
           )} for ${dmg}! (${leftCurrentHp} HP left)`
         );
@@ -161,9 +169,7 @@ const FightPreview: React.FC = () => {
         rightCurrentHp = Math.max(rightCurrentHp - dmg2, 0);
 
         logs.push(
-          `${capitalize(
-            selectedPokemons.left.name.english
-          )} hits ${capitalize(
+          `${capitalize(selectedPokemons.left.name.english)} hits ${capitalize(
             selectedPokemons.right.name.english
           )} for ${dmg2}! (${rightCurrentHp} HP left)`
         );
@@ -173,7 +179,7 @@ const FightPreview: React.FC = () => {
     setLeftHp(leftCurrentHp);
     setRightHp(rightCurrentHp);
 
-    let fightWinner =
+    const fightWinner =
       leftCurrentHp <= 0 && rightCurrentHp <= 0
         ? "draw"
         : leftCurrentHp > rightCurrentHp
@@ -183,7 +189,6 @@ const FightPreview: React.FC = () => {
     setWinner(fightWinner);
     setFightLogs(logs);
 
-    // Guardar historial
     saveFightToHistory({
       pokemon1: selectedPokemons.left.name.english,
       pokemon2: selectedPokemons.right.name.english,
@@ -192,9 +197,6 @@ const FightPreview: React.FC = () => {
     });
   };
 
-  // --------------------------------------------------------------------------
-  // Selección de Pokémon
-  // --------------------------------------------------------------------------
   const handleSelect = (side: "left" | "right", id: number) => {
     const selected = pokemons.find((p) => p.id === id) || null;
 
@@ -218,38 +220,14 @@ const FightPreview: React.FC = () => {
   };
 
   // --------------------------------------------------------------------------
-  // Helpers
-  // --------------------------------------------------------------------------
-  const capitalize = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1);
-
-  const hpBar = (current: number, max: number) => {
-    const pct = Math.max((current / max) * 100, 0);
-    const color =
-      pct > 50 ? "bg-green-500" : pct > 20 ? "bg-yellow-400" : "bg-red-500";
-
-    return (
-      <div className="w-32 h-4 bg-gray-300 rounded-full">
-        <div
-          className={`${color} h-4 rounded-full`}
-          style={{ width: `${pct}%` }}
-        ></div>
-      </div>
-    );
-  };
-
-  // --------------------------------------------------------------------------
-  // Render principal
+  // Render
   // --------------------------------------------------------------------------
   return (
     <div className="flex flex-col items-center space-y-8 my-12 px-4 md:px-0">
       <h1 className="text-3xl font-bold text-center">Pokémon Fight Arena</h1>
 
       <div className="flex flex-col md:flex-row items-center md:space-x-12 space-y-4 md:space-y-0">
-
-        {/* ------------------------------------------------------------------ */}
-        {/* POKÉMON IZQUIERDA */}
-        {/* ------------------------------------------------------------------ */}
+        {/* Left */}
         <div className="flex flex-col items-center">
           {selectedPokemons.left && (
             <>
@@ -284,9 +262,7 @@ const FightPreview: React.FC = () => {
 
         <span className="text-2xl font-bold">VS</span>
 
-        {/* ------------------------------------------------------------------ */}
-        {/* POKÉMON DERECHA */}
-        {/* ------------------------------------------------------------------ */}
+        {/* Right */}
         <div className="flex flex-col items-center">
           {selectedPokemons.right && (
             <>
@@ -313,9 +289,6 @@ const FightPreview: React.FC = () => {
         </div>
       </div>
 
-      {/* ---------------------------------------------------------------------- */}
-      {/* BOTÓN DE PELEA */}
-      {/* ---------------------------------------------------------------------- */}
       <button
         onClick={handleFight}
         className="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
@@ -323,11 +296,8 @@ const FightPreview: React.FC = () => {
         Fight
       </button>
 
-      {/* ---------------------------------------------------------------------- */}
-      {/* RESULTADO + LOGS estilo Pokémon */}
-      {/* ---------------------------------------------------------------------- */}
       {winner && (
-        <div className="mt-6 w-full md:w-2/3 p-4 bg-gray-50 rounded shadow pokemon-text text-center">
+        <div className="mt-6 w-full md:w-2/3 p-4 bg-gray-50 rounded shadow text-center">
           <h2 className="text-xl font-bold mb-3">
             {winner === "draw" ? "It's a Draw!" : `${capitalize(winner)} wins!`}
           </h2>

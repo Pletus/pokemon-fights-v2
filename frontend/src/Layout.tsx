@@ -1,7 +1,7 @@
 // Layout.tsx
 import React, { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { Menu, X } from "lucide-react"; // Lucide icons
+import { Menu, X } from "lucide-react";
 import logo from "./assets/imgs/pokemon-23.svg";
 import facebook from "./assets/icons/facebook-50.png";
 import instagram from "./assets/icons/instagram-50.png";
@@ -16,10 +16,10 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white shadow-md sticky top-0 z-50">
+      <header className="nav-color shadow-md sticky top-0 z-50">
         <nav className="container mx-auto flex items-center justify-between p-4 md:p-6">
           {/* Logo */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <img src={logo} alt="Pokemon Logo" className="w-32" />
           </div>
 
@@ -79,7 +79,7 @@ const Layout: React.FC = () => {
 
         {/* Mobile Menu */}
         <ul
-          className={`md:hidden bg-white shadow-md flex flex-col gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
+          className={`md:hidden nav-color shadow-md flex flex-col gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
             isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"
           }`}
         >
@@ -130,7 +130,7 @@ const Layout: React.FC = () => {
         </ul>
       </header>
 
-      <main className="container mx-auto p-6">
+      <main className="container mx-auto">
         <Outlet />
       </main>
 

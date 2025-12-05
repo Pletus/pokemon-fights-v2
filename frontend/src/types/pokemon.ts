@@ -16,6 +16,7 @@ export interface PokemonType {
 }
 
 export interface Pokemon {
+  species: any;
   id: number;
   name: { english: string };
   stats: { base_stat: number; stat: { name: string } }[];
@@ -24,5 +25,6 @@ export interface Pokemon {
   sprites: {
     front_default: string;
     [key: string]: string | undefined;
+    
   };
 }

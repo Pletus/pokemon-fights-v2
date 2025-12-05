@@ -1,38 +1,73 @@
-
+/* --- Hero Background --- */
 .background-image {
-  background-image: url('./assets/imgs/cute-yellow.jpg');
+  background-image: url("./assets/imgs/cute-yellow.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start; /* hacia arriba */
+  justify-content: flex-start; /* hacia la izquierda */
+  overflow-x: hidden; /* evita scroll horizontal */
+  overflow-y: hidden; /* opcional: evita scroll vertical en hero */
 }
 
-.navlinks {
-  font-size: 18px;
-  font-weight: normal;
-  font-family: sans-serif;
+/* --- Hero Text --- */
+.hero-title {
+  font-family: "Press Start 2P", cursive;
+  color: #ffcb05; /* amarillo Pokémon */
+  text-shadow: 2px 2px #2a75bb; /* borde azul fino */
+  font-size: 2.5rem; /* base, puedes ajustar según pantalla */
 }
 
-.fixedheight 2{
-  height: 120vh;
+.hero-subtitle {
+  font-family: "Press Start 2P", cursive;
+  color: #ffcb05;
+  text-shadow: 2px 2px #2a75bb;
+  font-size: 1rem; /* base, ajustable según pantalla */
+  margin-top: 1.5rem;
 }
 
-.nav {
-  background-color:#aaa89b;
-}
-
-.font {
-  font-family: sans-serif;
-}
-
-@keyframes fadeIn {
-  from {
+/* --- Animación de fade-in y desplazamiento --- */
+@keyframes fadeInUp {
+  0% {
     opacity: 0;
+    transform: translateY(20px);
   }
-  to {
+  100% {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.fade-in {
-  animation: fadeIn 1s ease-out;
+/* Aplica animación a ambos textos */
+.hero-title,
+.hero-subtitle {
+  animation: fadeInUp 0.8s ease-out forwards;
 }
+
+/* Opcional: nav con color Pokémon */
+.nav-color {
+  background-color: #ffcb05;
+}
+
+/* --- Responsive text sizes --- */
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  .hero-subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-title {
+    font-size: 4rem;
+  }
+  .hero-subtitle {
+    font-size: 2rem;
+  }
+}
+
