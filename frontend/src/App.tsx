@@ -2,10 +2,12 @@ import "./App.css";
 import { Route, Routes } from "react-router-dom";
 import Layout from "./Layout";
 import Main from "./Main";
-import Cards from './Cards';
+import Cards from "./Cards";
 import FightPreview from "./FightPreview";
 import ResultsTable from "./ResultTable";
-import Card from "./Card"; // <-- nuevo componente
+import Card from "./Card";
+import MemoryGame from "./MemoryGame";
+import ClickGame from "./ClickGame";
 
 function App() {
   return (
@@ -15,11 +17,12 @@ function App() {
         <Route path="/pokedex" element={<Cards />} />
         <Route path="/fight" element={<FightPreview />} />
         <Route path="/fightResults" element={<ResultsTable />} />
-        <Route path="/pokemon/:id/details" element={<Card />} /> {/* ruta corregida */}
+        <Route path="/pokemon/:id/details" element={<Card />} />
+        <Route path="/memory" element={<MemoryGame />} />
+        <Route path="/click" element={<ClickGame />} />
       </Route>
     </Routes>
   );
 }
 
 export default App;
-

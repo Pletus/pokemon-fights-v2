@@ -1,60 +1,145 @@
-import React from "react";
-import { useLocation } from "react-router-dom";
-import { Pokemon } from "./types/pokemon";
+// src/components/Card.tsx
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+
+type PokemonDetail = {
+  id: number;
+  name: string;
+  height: number;
+  weight: number;
+  base_experience: number;
+  abilities: { ability: { name: string } }[];
+  types: { type: { name: string } }[];
+  sprites: { front_default: string };
+  stats: { base_stat: number; stat: { name: string } }[];
+  species: { name: string };
+};
 
 const typeColors: Record<string, string> = {
   fire: "#F08030",
   water: "#6890F0",
   grass: "#78C850",
   electric: "#F8D030",
-  psychic: "#F85888",
-  normal: "#A8A878",
-  fighting: "#C03028",
-  flying: "#A890F0",
-  poison: "#A040A0",
   ground: "#E0C068",
   rock: "#B8A038",
   bug: "#A8B820",
-  ghost: "#705898",
-  steel: "#B8B8D0",
-  ice: "#98D8D8",
+  poison: "#A040A0",
+  psychic: "#F85888",
   dragon: "#7038F8",
-  dark: "#705848",
+  ice: "#98D8D8",
+  fighting: "#C03028",
+  normal: "#A8A878",
   fairy: "#EE99AC",
 };
 
 const Card: React.FC = () => {
-  const location = useLocation();
-  const pokemon = location.state as Pokemon | undefined;
+  const { id } = useParams();
+  const [pokemon, setPokemon] = useState<PokemonDetail | null>(null);
 
-  const capitalize = (str?: string) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : "");
+  useEffect(() => {
+    if (!id) return;
+    axios
+      .get<PokemonDetail>(`https://pokeapi.co/api/v2/pokemon/${id}`)
+      .then((res) => setPokemon(res.data))
+      .catch((err) => console.error(err));
+  }, [id]);
 
-  if (!pokemon) return <div className="text-center mt-8">Pokémon not found.</div>;
+  const capitalize = (str?: string) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
+
+  if (!pokemon) return <div className="text-center mt-10">Loading...</div>;
 
   return (
-    <div className="max-w-md mx-auto mt-8 bg-white rounded-2xl shadow-lg overflow-hidden p-6 flex flex-col items-center">
-      <h2 className="text-xl font-bold text-blue-700 mb-2">{capitalize(pokemon?.name?.english)}</h2>
+    <div className="max-w-lg mx-auto mt-8 mb-8 bg-red-600 rounded-3xl shadow-2xl p-6 border-4 border-black">
+      {/* HEADER */}
+      <div className="bg-black rounded-xl p-3 mb-4 flex justify-between items-center">
+        <h1 className="text-white text-2xl font-bold">Pokédex #{pokemon.id}</h1>
+        <div className="flex gap-2">
+          <div className="w-5 h-5 bg-red-500 rounded-full border-2 border-black"></div>
+          <div className="w-5 h-5 bg-yellow-500 rounded-full border-2 border-black"></div>
+          <div className="w-5 h-5 bg-green-500 rounded-full border-2 border-black"></div>
+        </div>
+      </div>
 
-      <img
-        src={pokemon?.sprites?.front_default}
-        alt={pokemon?.name?.english}
-        className="w-40 h-40 sm:w-48 sm:h-48 object-contain mb-3"
-      />
+      {/* IMAGE */}
+      <div className="bg-gray-200 rounded-xl p-4 border-4 border-black shadow-inner flex flex-col items-center">
+        <h2 className="text-xl font-bold mb-2">{capitalize(pokemon.name)}</h2>
+        <img
+          src={pokemon.sprites.front_default}
+          alt={pokemon.name}
+          className="w-40 h-40 object-contain mb-3"
+        />
 
-      <div className="flex flex-wrap justify-center gap-2 mt-1">
-        {pokemon?.types?.map((typeInfo) => (
-          <span
-            key={typeInfo.type.name}
-            className="text-white text-sm px-4 py-1 rounded-full font-semibold"
-            style={{ backgroundColor: typeColors[typeInfo.type.name] || "#A8A878" }}
-          >
-            {capitalize(typeInfo.type.name)}
-          </span>
-        ))}
+        {/* TYPES */}
+        <div className="flex gap-2 justify-center mt-2">
+          {pokemon.types.map((t) => (
+            <span
+              key={t.type.name}
+              className="px-3 py-1 rounded-full text-white font-semibold"
+              style={{ backgroundColor: typeColors[t.type.name] || "#666" }}
+            >
+              {capitalize(t.type.name)}
+            </span>
+          ))}
+        </div>
+
+        {/* BASIC INFO */}
+        <div className="grid grid-cols-2 gap-4 mt-4 w-full text-center">
+          <div className="bg-white p-2 rounded-lg shadow">
+            <p className="font-bold text-sm">Height</p>
+            <p>{pokemon.height / 10} m</p>
+          </div>
+          <div className="bg-white p-2 rounded-lg shadow">
+            <p className="font-bold text-sm">Weight</p>
+            <p>{pokemon.weight / 10} kg</p>
+          </div>
+          <div className="bg-white p-2 rounded-lg shadow col-span-2">
+            <p className="font-bold text-sm">Base XP</p>
+            <p>{pokemon.base_experience}</p>
+          </div>
+        </div>
+
+        {/* ABILITIES */}
+        <h3 className="text-lg font-bold mt-5">Abilities</h3>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {pokemon.abilities.map((a) => (
+            <span
+              key={a.ability.name}
+              className="bg-gray-300 px-3 py-1 rounded-lg border border-gray-500"
+            >
+              {capitalize(a.ability.name)}
+            </span>
+          ))}
+        </div>
+
+        {/* STATS */}
+        <h3 className="text-lg font-bold mt-6">Stats</h3>
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          {pokemon.stats.map((s) => (
+            <div key={s.stat.name} className="flex flex-col items-center">
+              <div className="w-20 h-20">
+                <CircularProgressbar
+                  value={s.base_stat}
+                  maxValue={150}
+                  text={`${s.base_stat}`}
+                  styles={buildStyles({
+                    textSize: "18px",
+                    pathColor: "#ff4444",
+                    textColor: "#222",
+                    trailColor: "#ddd",
+                  })}
+                />
+              </div>
+              <p className="text-sm mt-2">{capitalize(s.stat.name)}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 };
 
 export default Card;
-

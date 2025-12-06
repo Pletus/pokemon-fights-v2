@@ -1,4 +1,3 @@
-// Layout.tsx
 import React, { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -14,6 +13,9 @@ const Layout: React.FC = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    isActive ? "text-blue-500" : "hover:text-blue-500";
+
   return (
     <>
       <header className="nav-color shadow-md sticky top-0 z-50">
@@ -25,108 +27,30 @@ const Layout: React.FC = () => {
 
           {/* Desktop Links */}
           <ul className="hidden md:flex items-center gap-8 font-semibold text-gray-700">
-            <li>
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  isActive ? "text-blue-500" : "hover:text-blue-500"
-                }
-              >
-                Home
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/pokedex"
-                className={({ isActive }) =>
-                  isActive ? "text-blue-500" : "hover:text-blue-500"
-                }
-              >
-                Pokédex
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/fight"
-                className={({ isActive }) =>
-                  isActive ? "text-blue-500" : "hover:text-blue-500"
-                }
-              >
-                Fight
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/FightResults"
-                className={({ isActive }) =>
-                  isActive ? "text-blue-500" : "hover:text-blue-500"
-                }
-              >
-                Fight Results
-              </NavLink>
-            </li>
+            <li><NavLink to="/" className={linkClass}>Home</NavLink></li>
+            <li><NavLink to="/pokedex" className={linkClass}>Pokédex</NavLink></li>
+            <li><NavLink to="/fight" className={linkClass}>Fight</NavLink></li>
+            <li><NavLink to="/fightResults" className={linkClass}>Fight Results</NavLink></li>
+            <li><NavLink to="/memory" className={linkClass}>Memory Game</NavLink></li>
+            <li><NavLink to="/click" className={linkClass}>Click Game</NavLink></li>
           </ul>
 
           {/* Mobile menu button */}
-          <button
-            className="md:hidden text-gray-700"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
+          <button className="md:hidden text-gray-700" onClick={toggleMenu} aria-label="Toggle menu">
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </nav>
 
         {/* Mobile Menu */}
-        <ul
-          className={`md:hidden nav-color shadow-md flex flex-col gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
+        <ul className={`md:hidden nav-color shadow-md flex flex-col gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
             isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0 overflow-hidden"
-          }`}
-        >
-          <li>
-            <NavLink
-              to="/"
-              onClick={() => setIsMenuOpen(false)}
-              className={({ isActive }) =>
-                isActive ? "text-blue-500" : "hover:text-blue-500"
-              }
-            >
-              Home
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/pokedex"
-              onClick={() => setIsMenuOpen(false)}
-              className={({ isActive }) =>
-                isActive ? "text-blue-500" : "hover:text-blue-500"
-              }
-            >
-              Pokédex
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/fight"
-              onClick={() => setIsMenuOpen(false)}
-              className={({ isActive }) =>
-                isActive ? "text-blue-500" : "hover:text-blue-500"
-              }
-            >
-              Fight
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/FightResults"
-              onClick={() => setIsMenuOpen(false)}
-              className={({ isActive }) =>
-                isActive ? "text-blue-500" : "hover:text-blue-500"
-              }
-            >
-              Fight Results
-            </NavLink>
-          </li>
+          }`}>
+          <li><NavLink to="/" onClick={() => setIsMenuOpen(false)} className={linkClass}>Home</NavLink></li>
+          <li><NavLink to="/pokedex" onClick={() => setIsMenuOpen(false)} className={linkClass}>Pokédex</NavLink></li>
+          <li><NavLink to="/fight" onClick={() => setIsMenuOpen(false)} className={linkClass}>Fight</NavLink></li>
+          <li><NavLink to="/fightResults" onClick={() => setIsMenuOpen(false)} className={linkClass}>Fight Results</NavLink></li>
+          <li><NavLink to="/memory" onClick={() => setIsMenuOpen(false)} className={linkClass}>Memory Game</NavLink></li>
+          <li><NavLink to="/click" onClick={() => setIsMenuOpen(false)} className={linkClass}>Click Game</NavLink></li>
         </ul>
       </header>
 

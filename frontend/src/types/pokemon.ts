@@ -1,30 +1,41 @@
+// src/types/pokemon.ts
+
 export interface PokemonStat {
-  stat: { name: string };
   base_stat: number;
+  stat: { name: string };
 }
 
 export interface PokemonAbility {
-  ability: { name: string };
+  ability: {
+    name: string;
+  };
+}
+
+export interface PokemonType {
+  type: {
+    name: string;
+  };
+}
+
+export interface PokemonSprites {
+  front_default: string;
+  [key: string]: string | undefined;
+}
+
+export interface PokemonSpecies {
+  name: string;
+}
+
+export interface Pokemon {
+  id: number;
+  name: { english: string };
+  species: PokemonSpecies;
+  stats: PokemonStat[];
+  abilities: PokemonAbility[];
+  types: PokemonType[];
+  sprites: PokemonSprites;
 }
 
 export interface PokemonListResponse {
   results: { name: string; url: string }[];
-}
-
-export interface PokemonType {
-  type: { name: string };
-}
-
-export interface Pokemon {
-  species: any;
-  id: number;
-  name: { english: string };
-  stats: { base_stat: number; stat: { name: string } }[];
-  abilities: any[];
-  types: { type: { name: string } }[];
-  sprites: {
-    front_default: string;
-    [key: string]: string | undefined;
-    
-  };
 }
