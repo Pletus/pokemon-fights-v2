@@ -1,4 +1,3 @@
-// src/components/MiniGamesHub.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,13 +7,13 @@ const MiniGamesHub: React.FC = () => {
   const games = [
     {
       title: "Memory Game",
-      description: "Encuentra los pares de Pokémon antes de que se acabe el tiempo.",
+      description: "Encuentra todos los pares de Pokémon.",
       route: "/minigames/memory",
       color: "bg-blue-400",
     },
     {
-      title: "Click Game",
-      description: "Haz clic en los Pokémon que aparezcan lo más rápido posible.",
+      title: "Click Frenzy",
+      description: "Haz clic en los Pokémon correctos y evita los malos.",
       route: "/minigames/click",
       color: "bg-green-400",
     },
