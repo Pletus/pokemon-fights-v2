@@ -7,15 +7,21 @@ const MiniGamesHub: React.FC = () => {
   const games = [
     {
       title: "Memory Game",
-      description: "Encuentra todos los pares de Pokémon.",
+      description: "Find all the Pokémon pairs.",
       route: "/minigames/memory",
       color: "bg-blue-400",
     },
     {
       title: "Click Frenzy",
-      description: "Haz clic en los Pokémon correctos y evita los malos.",
+      description: "Click on the correct Pokémon and avoid the bad ones.",
       route: "/minigames/click",
       color: "bg-green-400",
+    },
+    {
+      title: "Poke Run",
+      description: "Jump and avoid collisions.",
+      route: "/minigames/run",
+      color: "bg-red-400",
     },
   ];
 

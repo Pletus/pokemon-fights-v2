@@ -9,6 +9,7 @@ import Card from "./Card";
 import MiniGamesHub from "./MiniGamesHub";
 import MemoryGame from "./MemoryGame";
 import ClickGame from "./ClickGame";
+import PlatformGame from "./PlatformGame";
 
 function App() {
   return (
@@ -28,10 +29,10 @@ function App() {
         <Route path="/minigames" element={<MiniGamesHub />} />
         <Route path="/minigames/memory" element={<MemoryGame />} />
         <Route path="/minigames/click" element={<ClickGame />} />
+        <Route path="/minigames/run" element={<PlatformGame />} />
       </Route>
     </Routes>
   );
 }
 
 export default App;
-

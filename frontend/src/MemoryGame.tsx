@@ -137,7 +137,9 @@ const MemoryGame: React.FC = () => {
       setIntervalId(id);
     }
 
-    const newDeck = deck.map((c) => (c.uid === uid ? { ...c, flipped: true } : c));
+    const newDeck = deck.map((c) =>
+      c.uid === uid ? { ...c, flipped: true } : c
+    );
     setDeck(newDeck);
 
     if (!first) {
@@ -154,9 +156,11 @@ const MemoryGame: React.FC = () => {
       setTimeout(() => {
         setDeck((prev) =>
           prev.map((c) => {
-            if (c.pairId === card.pairId && isMatch) return { ...c, matched: true, flipped: true };
+            if (c.pairId === card.pairId && isMatch)
+              return { ...c, matched: true, flipped: true };
             if (c.uid === uid && !isMatch) return { ...c, flipped: false };
-            if (c.uid === first.uid && !isMatch) return { ...c, flipped: false };
+            if (c.uid === first.uid && !isMatch)
+              return { ...c, flipped: false };
             return c;
           })
         );
@@ -217,7 +221,9 @@ const MemoryGame: React.FC = () => {
     <div className="min-h-screen bg-gray-100 py-8 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-bold text-center mb-4">Memory Match</h2>
-        <p className="text-center text-sm text-gray-600 mb-6">Flip two cards to find pairs — try to finish fast!</p>
+        <p className="text-center text-sm text-gray-600 mb-6">
+          Flip two cards to find pairs — try to finish fast!
+        </p>
 
         {/* Controls */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-6">
@@ -257,9 +263,15 @@ const MemoryGame: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-sm">Time: <span className="font-mono">{formatTime(time)}</span></div>
-            <div className="text-sm">Moves: <span className="font-semibold">{moves}</span></div>
-            <div className="text-sm">Grid: {adjustedRows}×{adjustedCols}</div>
+            <div className="text-sm">
+              Time: <span className="font-mono">{formatTime(time)}</span>
+            </div>
+            <div className="text-sm">
+              Moves: <span className="font-semibold">{moves}</span>
+            </div>
+            <div className="text-sm">
+              Grid: {adjustedRows}×{adjustedCols}
+            </div>
           </div>
         </div>
 
@@ -290,9 +302,11 @@ const MemoryGame: React.FC = () => {
                 className={`absolute inset-0 transition-transform duration-500 transform ${
                   card.flipped || card.matched ? "rotate-y-0" : "rotate-y-180"
                 }`}
-                style={{
-                  transformStyle: "preserve-3d",
-                } as React.CSSProperties}
+                style={
+                  {
+                    transformStyle: "preserve-3d",
+                  } as React.CSSProperties
+                }
               >
                 {/* Front (shows sprite) */}
                 <div
@@ -302,7 +316,11 @@ const MemoryGame: React.FC = () => {
                     transform: "rotateY(0deg)",
                   }}
                 >
-                  <img src={card.img} alt="poke" className="w-3/5 h-3/5 object-contain" />
+                  <img
+                    src={card.img}
+                    alt="poke"
+                    className="w-3/5 h-3/5 object-contain"
+                  />
                 </div>
 
                 {/* Back */}
@@ -324,9 +342,15 @@ const MemoryGame: React.FC = () => {
         {deck.length > 0 && deck.every((c) => c.matched) && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-2xl text-center transform animate-scale-in">
-              <h3 className="text-2xl font-bold mb-2">You cleared the board!</h3>
-              <p className="mb-2">Time: <span className="font-mono">{formatTime(time)}</span></p>
-              <p className="mb-4">Moves: <strong>{moves}</strong></p>
+              <h3 className="text-2xl font-bold mb-2">
+                You cleared the board!
+              </h3>
+              <p className="mb-2">
+                Time: <span className="font-mono">{formatTime(time)}</span>
+              </p>
+              <p className="mb-4">
+                Moves: <strong>{moves}</strong>
+              </p>
               <button
                 className="px-4 py-2 bg-yellow-400 rounded font-semibold"
                 onClick={startGame}
@@ -337,34 +361,8 @@ const MemoryGame: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* small accessibility note */}
-      <style jsx>{`
-        /* square trick */
-        .pb-full {
-          padding-bottom: 100%;
-        }
-        /* rotate helpers (Tailwind doesn't have rotate-y out of the box) */
-        .rotate-y-180 {
-          transform: rotateY(180deg);
-        }
-        .rotate-y-0 {
-          transform: rotateY(0deg);
-        }
-        /* simple scale-in animation for victory */
-        @keyframes scaleIn {
-          0% { transform: scale(0.8); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-scale-in {
-          animation: scaleIn 400ms ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };
 
 export default MemoryGame;
-
-
-
