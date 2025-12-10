@@ -294,6 +294,8 @@ const MemoryGame: React.FC = () => {
           {deck.map((card) => (
             <div
               key={card.uid}
+              role="button"
+              data-pairid={card.pairId}
               onClick={() => flipCard(card.uid)}
               className={`relative w-full pb-full`} /* pb-full trick to make square (css below) */
               style={{ perspective: 700 }}

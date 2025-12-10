@@ -19,7 +19,7 @@ const Layout: React.FC = () => {
 
   return (
     <>
-      <header className="nav-color shadow-md top-0 z-50">
+      <header className="nav-color shadow-md">
         <nav className="container mx-auto flex items-center justify-between p-4 md:p-6 md:px-12">
           <div className="flex items-center">
             <img src={logo} alt="Pokemon Logo" className="w-16 ml-4 p-1" />
@@ -63,7 +63,7 @@ const Layout: React.FC = () => {
         </nav>
 
         <ul
-          className={`md:hidden nav-color shadow-md flex flex-col gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
+          className={`md:hidden nav-color shadow-md flex gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
             isMenuOpen
               ? "max-h-screen opacity-100"
               : "max-h-0 opacity-0 overflow-hidden"
