@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+// =====================
+// Types
+// =====================
 type Pokemon = { name: string; url: string };
 type PokeAPIList = { results: Pokemon[] };
 
@@ -9,22 +12,48 @@ type SpawnType = "normal" | "rare" | "boss" | "trap" | "powerUp";
 type Spawn = {
   id: number;
   type: SpawnType;
-  x: number;
-  y: number;
+  x: number; // %
+  y: number; // % (lane)
 };
 
+// =====================
+// Tunables (game feel)
+// =====================
+const GAME_TIME = 30;
+const MIN_DISTANCE = 20; // % distance between spawns
+const LANES = [20, 45, 70]; // vertical lanes
+const MAX_SPAWNS = 8;
+
+// =====================
+// Helpers
+// =====================
+function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function canSpawnHere(x: number, y: number, existing: Spawn[]) {
+  return existing.every((s) => distance({ x, y }, s) > MIN_DISTANCE);
+}
+
+// =====================
+// Component
+// =====================
 const ClickGame: React.FC = () => {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [spawns, setSpawns] = useState<Spawn[]>([]);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
   const [combo, setCombo] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(GAME_TIME);
   const [powerUp, setPowerUp] = useState<
     null | "double" | "freeze" | "timeBoost"
   >(null);
   const [isFrozen, setIsFrozen] = useState(false);
 
+  // =====================
   // Fetch Pokémon list
+  // =====================
   useEffect(() => {
     axios
       .get<PokeAPIList>("https://pokeapi.co/api/v2/pokemon?limit=200")
@@ -32,41 +61,63 @@ const ClickGame: React.FC = () => {
       .catch(console.error);
   }, []);
 
-  // Game loop: timer + spawn
+  // =====================
+  // Game loop (human-friendly pacing)
+  // =====================
   useEffect(() => {
     if (timeLeft <= 0) return;
 
-    const loop = setInterval(() => {
-      if (!isFrozen) setTimeLeft((t) => Math.max(0, t - 1));
-      spawnPokemon();
-    }, 1000);
+    const delay = Math.random() * 400 + 1200; // 1200–1600ms
 
-    return () => clearInterval(loop);
-  }, [isFrozen, pokemons, score, timeLeft]);
+    const timer = setTimeout(() => {
+      if (!isFrozen) {
+        setTimeLeft((t) => Math.max(0, t - 1));
+        spawnPokemon();
+      }
+    }, delay);
 
+    return () => clearTimeout(timer);
+  }, [timeLeft, isFrozen, pokemons, spawns]);
+
+  // =====================
+  // Spawn logic (fair)
+  // =====================
   const spawnPokemon = () => {
     if (pokemons.length === 0) return;
 
-    const roll = Math.random();
+    const dangerousOnScreen = spawns.filter(
+      (s) => s.type === "trap" || s.type === "boss"
+    ).length;
+
+    let roll = Math.random();
     let type: SpawnType = "normal";
 
     if (roll < 0.05) type = "powerUp";
-    else if (roll < 0.1) type = "boss";
+    else if (roll < 0.1 && dangerousOnScreen === 0) type = "boss";
     else if (roll < 0.2) type = "rare";
-    else if (roll < 0.3) type = "trap";
+    else if (roll < 0.3 && dangerousOnScreen === 0) type = "trap";
 
-    const index = Math.floor(Math.random() * pokemons.length);
+    const id = Math.floor(Math.random() * pokemons.length) + 1;
+    const y = LANES[Math.floor(Math.random() * LANES.length)];
 
-    const newSpawn: Spawn = {
-      id: index + 1,
-      type,
-      x: Math.random() * 80 + 10,
-      y: Math.random() * 70 + 10,
-    };
+    let x = Math.random() * 70 + 15;
+    let tries = 0;
 
-    setSpawns((prev) => [...prev, newSpawn].slice(-10));
+    while (!canSpawnHere(x, y, spawns) && tries < 10) {
+      x = Math.random() * 70 + 15;
+      tries++;
+    }
+
+    if (tries >= 10) return; // no space → skip spawn
+
+    const newSpawn: Spawn = { id, type, x, y };
+
+    setSpawns((prev) => [...prev, newSpawn].slice(-MAX_SPAWNS));
   };
 
+  // =====================
+  // Click handling
+  // =====================
   const handleClick = (s: Spawn) => {
     if (s.type === "powerUp") {
       activatePowerUp();
@@ -75,30 +126,23 @@ const ClickGame: React.FC = () => {
     }
 
     if (s.type === "trap") {
-      setScore((s) => Math.max(0, s - 5));
+      setScore((sc) => Math.max(0, sc - 5));
       setCombo(0);
       removeSpawn(s);
       return;
     }
 
-    // Base points según tipo
-    let basePoints = 1;
-    if (s.type === "rare") basePoints = 5;
-    if (s.type === "boss") basePoints = 10;
+    let base = 1;
+    if (s.type === "rare") base = 5;
+    if (s.type === "boss") base = 10;
 
-    // Combo antes de incrementar
     const comboBonus = Math.floor(combo / 5);
+    let total = base + comboBonus;
 
-    // Total points
-    let totalPoints = basePoints + comboBonus;
+    if (powerUp === "double") total *= 2;
 
-    if (powerUp === "double") totalPoints *= 2;
-
-    // Increment combo
     setCombo((c) => c + 1);
-
-    // Update score
-    setScore((s) => s + totalPoints);
+    setScore((sc) => sc + total);
 
     removeSpawn(s);
   };
@@ -107,15 +151,16 @@ const ClickGame: React.FC = () => {
     setSpawns((prev) => prev.filter((p) => p !== s));
   };
 
+  // =====================
+  // PowerUps
+  // =====================
   const activatePowerUp = () => {
     const roll = Math.random();
 
     if (roll < 0.4) {
-      // Double points 5s
       setPowerUp("double");
       setTimeout(() => setPowerUp(null), 5000);
     } else if (roll < 0.7) {
-      // Freeze 3s
       setIsFrozen(true);
       setPowerUp("freeze");
       setTimeout(() => {
@@ -123,13 +168,15 @@ const ClickGame: React.FC = () => {
         setPowerUp(null);
       }, 3000);
     } else {
-      // Time boost +5s
       setTimeLeft((t) => t + 5);
       setPowerUp("timeBoost");
       setTimeout(() => setPowerUp(null), 3000);
     }
   };
 
+  // =====================
+  // Render
+  // =====================
   return (
     <div className="relative min-h-screen bg-slate-900 text-white overflow-hidden">
       {/* HUD */}
@@ -139,7 +186,7 @@ const ClickGame: React.FC = () => {
         <div>⭐ Score: {score}</div>
       </div>
 
-      {/* Power up banner */}
+      {/* PowerUp banner */}
       {powerUp && (
         <div className="text-center text-2xl py-2 bg-yellow-500 text-black font-extrabold animate-pulse">
           {powerUp === "double" && "⚡ DOUBLE POINTS!"}
@@ -150,9 +197,9 @@ const ClickGame: React.FC = () => {
 
       {/* Game field */}
       <div className="relative w-full h-[80vh]">
-        {spawns.map((s, i) => (
+        {spawns.map((s) => (
           <img
-            key={i}
+            key={`${s.id}-${s.x}-${s.y}`}
             src={
               s.type === "trap"
                 ? "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png"
@@ -165,10 +212,7 @@ const ClickGame: React.FC = () => {
               ${s.type === "boss" ? "drop-shadow-[0_0_15px_red]" : ""}
               ${s.type === "powerUp" ? "animate-ping" : ""}
             `}
-            style={{
-              left: `${s.x}%`,
-              top: `${s.y}%`,
-            }}
+            style={{ left: `${s.x}%`, top: `${s.y}%` }}
           />
         ))}
       </div>

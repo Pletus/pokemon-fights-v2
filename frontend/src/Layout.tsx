@@ -21,10 +21,12 @@ const Layout: React.FC = () => {
     <>
       <header className="nav-color shadow-md">
         <nav className="container mx-auto flex items-center justify-between p-4 md:p-6 md:px-12">
+          {/* Logo */}
           <div className="flex items-center">
             <img src={logo} alt="Pokemon Logo" className="w-16 ml-4 p-1" />
           </div>
 
+          {/* Menu desktop */}
           <ul className="hidden md:flex items-center gap-10 font-semibold text-gray-700">
             <li>
               <NavLink to="/" className={linkClass}>
@@ -53,6 +55,7 @@ const Layout: React.FC = () => {
             </li>
           </ul>
 
+          {/* Toggle menu mobile */}
           <button
             className="md:hidden text-gray-700"
             onClick={toggleMenu}
@@ -62,41 +65,28 @@ const Layout: React.FC = () => {
           </button>
         </nav>
 
+        {/* Menu mobile */}
         <ul
-          className={`md:hidden nav-color shadow-md flex gap-4 p-6 text-gray-700 font-semibold transition-all duration-300 ${
-            isMenuOpen
-              ? "max-h-screen opacity-100"
-              : "max-h-0 opacity-0 overflow-hidden"
+          className={`md:hidden nav-color shadow-md flex flex-col items-center gap-4 px-6 py-4 text-gray-700 font-semibold transition-all duration-300 overflow-hidden ${
+            isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          <li>
-            <NavLink
-              to="/"
-              onClick={() => setIsMenuOpen(false)}
-              className={linkClass}
-            >
+          <li className="w-full text-center">
+            <NavLink to="/" onClick={() => setIsMenuOpen(false)} className={linkClass}>
               Home
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/pokedex"
-              onClick={() => setIsMenuOpen(false)}
-              className={linkClass}
-            >
+          <li className="w-full text-center">
+            <NavLink to="/pokedex" onClick={() => setIsMenuOpen(false)} className={linkClass}>
               Pokédex
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/fight"
-              onClick={() => setIsMenuOpen(false)}
-              className={linkClass}
-            >
+          <li className="w-full text-center">
+            <NavLink to="/fight" onClick={() => setIsMenuOpen(false)} className={linkClass}>
               Fight
             </NavLink>
           </li>
-          <li>
+          <li className="w-full text-center">
             <NavLink
               to="/fightResults"
               onClick={() => setIsMenuOpen(false)}
@@ -105,12 +95,8 @@ const Layout: React.FC = () => {
               Fight Results
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to="/minigames"
-              onClick={() => setIsMenuOpen(false)}
-              className={linkClass}
-            >
+          <li className="w-full text-center">
+            <NavLink to="/minigames" onClick={() => setIsMenuOpen(false)} className={linkClass}>
               Mini-games
             </NavLink>
           </li>
@@ -169,3 +155,4 @@ const Layout: React.FC = () => {
 };
 
 export default Layout;
+

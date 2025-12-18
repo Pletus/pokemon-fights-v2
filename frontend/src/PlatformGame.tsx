@@ -1,180 +1,210 @@
+// PLATFORM GAME — FIXED & PLAYABLE
+// - Hold jump (variable height)
+// - Guaranteed safe first obstacle
+// - Impossible spawn patterns removed
+// - No Space key scroll
+
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
+// ---------------- TYPES ----------------
 type Pokemon = { name: string; url: string };
 type PokeAPIList = { results: Pokemon[] };
 
-const GRAVITY = 0.6;
-const JUMP_FORCE = -12;
+// ---------------- CONSTANTS ----------------
+const GRAVITY = 0.65;
+const BASE_JUMP = -12;
+const HOLD_JUMP_FORCE = -0.6; // applied while key held
+const MAX_HOLD_TIME = 220; // ms
 
+const TICK = 30;
+const GAME_WIDTH = 800;
+const GROUND_Y = 0;
+
+const FIRST_OBSTACLE_DELAY = 1200; // ms – critical fix
+const MIN_OBSTACLE_GAP = 300; // guarantees jumpable distance
+const OBSTACLE_SPEED = 5;
+
+// ---------------- COMPONENT ----------------
 const PlatformGame: React.FC = () => {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [playerY, setPlayerY] = useState(0);
   const [velocityY, setVelocityY] = useState(0);
   const [isJumping, setIsJumping] = useState(false);
+  const [isHoldingJump, setIsHoldingJump] = useState(false);
+  const [jumpStart, setJumpStart] = useState<number | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
 
-  const [obstacles, setObstacles] = useState<
-    { x: number; id: number }[]
-  >([]);
+  const [obstacles, setObstacles] = useState<{ x: number; id: number }[]>([]);
+  const gameStartTime = useRef(Date.now());
 
   const playerRef = useRef<HTMLDivElement | null>(null);
-  const gameRef = useRef<HTMLDivElement | null>(null);
 
-  // 1. Fetch Pokémon list
+  // ---------------- FETCH ----------------
   useEffect(() => {
-    const fetchList = async () => {
-      try {
-        const res = await axios.get<PokeAPIList>(
-          "https://pokeapi.co/api/v2/pokemon?limit=151"
-        );
-        setPokemons(res.data.results);
-      } catch (err) {
-        console.error("Error fetching Pokémon", err);
-      }
-    };
-    fetchList();
+    axios
+      .get<PokeAPIList>("https://pokeapi.co/api/v2/pokemon?limit=151")
+      .then((r) => setPokemons(r.data.results))
+      .catch(console.error);
   }, []);
 
-  // 2. Jump when pressing space or clicking
-  const jump = () => {
-    if (gameOver) return;
-
-    if (!isJumping) {
-      setVelocityY(JUMP_FORCE);
-      setIsJumping(true);
-    }
+  // ---------------- INPUT ----------------
+  const startJump = () => {
+    if (gameOver || isJumping) return;
+    setVelocityY(BASE_JUMP);
+    setIsJumping(true);
+    setIsHoldingJump(true);
+    setJumpStart(Date.now());
   };
 
-  // Keyboard jump
+  const stopJump = () => {
+    setIsHoldingJump(false);
+    setJumpStart(null);
+  };
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.code === "Space") jump();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "ArrowUp" || e.code === "KeyZ") {
+        e.preventDefault();
+        startJump();
+      }
       if (gameOver && e.code === "Enter") restart();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "ArrowUp" || e.code === "KeyZ") stopJump();
+    };
+
+    window.addEventListener("keydown", onKeyDown, { passive: false });
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
   }, [isJumping, gameOver]);
 
-  // 3. Physics loop
+  // ---------------- GAME LOOP ----------------
   useEffect(() => {
     if (gameOver) return;
 
     const loop = setInterval(() => {
-      setPlayerY((prev) => {
-        let newY = prev + velocityY;
-        let vel = velocityY + GRAVITY;
+      // ---- physics
+      setPlayerY((y) => {
+        let vy = velocityY;
 
-        setVelocityY(vel);
-
-        // Ground collision
-        if (newY >= 0) {
-          newY = 0;
-          setIsJumping(false);
+        // variable jump height
+        if (
+          isHoldingJump &&
+          jumpStart &&
+          Date.now() - jumpStart < MAX_HOLD_TIME
+        ) {
+          vy += HOLD_JUMP_FORCE;
         }
 
-        return newY;
+        vy += GRAVITY;
+        let nextY = y + vy;
+
+        if (nextY >= GROUND_Y) {
+          nextY = GROUND_Y;
+          setIsJumping(false);
+          setIsHoldingJump(false);
+        }
+
+        setVelocityY(vy);
+        return nextY;
       });
 
       setScore((s) => s + 1);
 
-      // Move obstacles
+      // ---- move obstacles
       setObstacles((obs) =>
         obs
-          .map((o) => ({ ...o, x: o.x - 6 }))
+          .map((o) => ({ ...o, x: o.x - OBSTACLE_SPEED }))
           .filter((o) => o.x > -80)
       );
 
-      // Chance to spawn new obstacle
-      if (Math.random() < 0.03 && pokemons.length > 0) {
-        const id = Math.floor(Math.random() * 151) + 1;
-        setObstacles((o) => [...o, { x: 800, id }]);
-      }
-    }, 30);
+      // ---- spawn obstacles (HARD RULES)
+      setObstacles((obs) => {
+        const elapsed = Date.now() - gameStartTime.current;
+        if (elapsed < FIRST_OBSTACLE_DELAY) return obs;
+
+        const last = obs[obs.length - 1];
+        const canSpawn = !last || last.x < GAME_WIDTH - MIN_OBSTACLE_GAP;
+
+        if (canSpawn && Math.random() < 0.018 && pokemons.length > 0) {
+          const id = Math.floor(Math.random() * 151) + 1;
+          return [...obs, { x: GAME_WIDTH, id }];
+        }
+        return obs;
+      });
+    }, TICK);
 
     return () => clearInterval(loop);
-  }, [velocityY, gameOver, pokemons]);
+  }, [velocityY, isHoldingJump, jumpStart, gameOver, pokemons]);
 
-  // 4. Collision detection
+  // ---------------- COLLISION ----------------
   useEffect(() => {
-    if (!playerRef.current || !gameRef.current || gameOver) return;
+    if (!playerRef.current || gameOver) return;
+    const p = playerRef.current.getBoundingClientRect();
 
-    const playerBox = playerRef.current.getBoundingClientRect();
-
-    obstacles.forEach((obs) => {
-      const el = document.getElementById(`obs-${obs.id}`);
+    obstacles.forEach((o) => {
+      const el = document.getElementById(`obs-${o.id}`);
       if (!el) return;
+      const b = el.getBoundingClientRect();
 
-      const obsBox = el.getBoundingClientRect();
+      const hit =
+        p.right - 12 > b.left &&
+        p.left + 12 < b.right &&
+        p.bottom > b.top + 14;
 
-      const overlap =
-        playerBox.left < obsBox.right &&
-        playerBox.right > obsBox.left &&
-        playerBox.top < obsBox.bottom &&
-        playerBox.bottom > obsBox.top;
-
-      if (overlap) {
-        setGameOver(true);
-      }
+      if (hit) setGameOver(true);
     });
   }, [obstacles, gameOver]);
 
-  // 5. Restart
+  // ---------------- RESTART ----------------
   const restart = () => {
+    gameStartTime.current = Date.now();
     setGameOver(false);
     setPlayerY(0);
     setVelocityY(0);
     setObstacles([]);
     setScore(0);
     setIsJumping(false);
+    setIsHoldingJump(false);
   };
 
-  const playerId = 25; // Pikachu runner
-
+  // ---------------- RENDER ----------------
   return (
-    <div
-      className="w-full h-screen bg-gray-200 flex flex-col items-center pt-6"
-      onClick={jump}
-    >
-      <h2 className="text-3xl font-bold mb-2">Pokémon Runner</h2>
-      <p className="mb-3 text-sm text-gray-600">
-        Press <b>SPACE</b> or click to jump — Avoid Pokémon!
+    <div className="w-full h-screen bg-gray-200 flex flex-col items-center pt-6 select-none">
+      <h2 className="text-3xl font-bold mb-1">Pokémon Runner</h2>
+      <p className="text-sm mb-2">Hold ↑ or Z to jump higher</p>
+
+      <p className="mb-4 font-semibold">
+        Score: {score}
+        {gameOver && <span className="ml-3 text-red-600">Game Over – Enter</span>}
       </p>
 
-      <p className="text-lg font-semibold mb-5">
-        Score: {score}{" "}
-        {gameOver && <span className="ml-2 text-red-600">Game Over! Press ENTER</span>}
-      </p>
-
-      {/* GAME BOX */}
       <div
-        ref={gameRef}
         className="relative bg-white border shadow-lg overflow-hidden"
-        style={{ width: 800, height: 250 }}
+        style={{ width: GAME_WIDTH, height: 250 }}
       >
-        {/* Ground line */}
         <div className="absolute bottom-0 w-full h-2 bg-green-600" />
 
-        {/* PLAYER */}
         <div
           ref={playerRef}
-          className="absolute bottom-0"
-          style={{
-            transform: `translateY(${playerY}px)`,
-            transition: "none",
-          }}
+          className="absolute bottom-0 left-16"
+          style={{ transform: `translateY(${playerY}px)` }}
         >
           <img
-            src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${playerId}.png`}
+            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
             className="w-16 h-16"
           />
         </div>
 
-        {/* OBSTACLES */}
-        {obstacles.map((o) => (
+        {obstacles.map((o, i) => (
           <img
-            key={o.x + "-" + o.id}
+            key={i}
             id={`obs-${o.id}`}
             src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${o.id}.png`}
             className="absolute bottom-0 w-14 h-14"
